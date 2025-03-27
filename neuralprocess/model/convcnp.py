@@ -263,11 +263,11 @@ class GPConvDeepSet(ConvDeepSet):
         dists = torch.pow(context_in.unsqueeze(2) - target_in.unsqueeze(1), 2)
         dists = dists.sum(-1)
         K_s = torch.exp(-0.5 * dists / self.sigma_fn(self.sigma[-1]) ** 2)
-        L_k, _ = torch.solve(K_s, L)  # (B, N, M)
+        L_k = torch.linalg.solve(L, K_s)  # (B, N, M)
 
         # Compute mean prediction
         # Shape (B, M, Cin)
-        output = torch.bmm(L_k.transpose(1, 2), torch.solve(context_out, L)[0])
+        output = torch.bmm(L_k.transpose(1, 2), torch.linalg.solve(L, context_out))
 
         # Sample from the posterior if desired
         if self.gp_sample_from_posterior and self.training:
